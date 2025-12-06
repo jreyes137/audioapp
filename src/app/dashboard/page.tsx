@@ -40,6 +40,8 @@ import {
     Metadata,
 } from "@/lib/db";
 import { COLORS, STYLES } from "@/lib/theme";
+// 2. NUEVO: Si necesitas subir archivos, impórtalo desde storage.ts
+import { uploadToSupabase } from "@/lib/storage";
 
 // ==================== ICONOS ====================
 const LinkIcon = () => (
