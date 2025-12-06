@@ -27,7 +27,6 @@ import MetadataEditor from "@/components/MetadataEditor";
 import SplitSheetModal from "@/components/SplitSheetModal";
 import DashboardLayout from "@/components/DashboardLayout";
 import { audioManager } from "@/lib/audioManager";
-import { uploadToSupabase } from "@/lib/storage";
 import { useProjects } from "@/context/ProjectsContext";
 import {
     getProjectsFromDB,
@@ -40,8 +39,6 @@ import {
     Metadata,
 } from "@/lib/db";
 import { COLORS, STYLES } from "@/lib/theme";
-// 2. NUEVO: Si necesitas subir archivos, impórtalo desde storage.ts
-import { uploadToSupabase } from "@/lib/storage";
 
 // ==================== ICONOS ====================
 const LinkIcon = () => (
