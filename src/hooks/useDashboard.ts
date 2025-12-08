@@ -14,10 +14,10 @@ import {
     createProjectInDB,
     updateProjectInDB,
     deleteProjectInDB,
-    uploadFileToCloud,
     Project,
     CreateProjectInput,
 } from "@/lib/db";
+import { uploadToSupabase } from "@/lib/storage";
 import { INITIAL_PROJECTS } from "@/lib/data";
 
 type ViewMode = "PORTFOLIO" | "ORDERS" | "INBOX" | "EDITOR";
@@ -80,10 +80,12 @@ export function useDashboard() {
 
         try {
             // Subir archivos en paralelo
-            const [mixUrl, masterUrl] = await Promise.all([
-                data.mixFile ? uploadFileToCloud(data.mixFile, "tracks") : Promise.resolve(null),
-                data.masterFile ? uploadFileToCloud(data.masterFile, "tracks") : Promise.resolve(null),
+            const [mixResult, masterResult] = await Promise.all([
+                data.mixFile ? uploadToSupabase(data.mixFile, "uploads") : Promise.resolve(null),
+                data.masterFile ? uploadToSupabase(data.masterFile, "uploads") : Promise.resolve(null),
             ]);
+            const mixUrl = mixResult?.publicUrl || null;
+            const masterUrl = masterResult?.publicUrl || null;
 
             // Crear proyecto
             const newProj: CreateProjectInput = {
@@ -122,7 +124,8 @@ export function useDashboard() {
         alert("⏳ Subiendo archivo...");
 
         try {
-            const url = await uploadFileToCloud(file, "tracks");
+            const result = await uploadToSupabase(file, "uploads");
+            const url = result?.publicUrl || null;
 
             if (url) {
                 const updateData = type === "MIX" ? { mixUrl: url } : { masterUrl: url };

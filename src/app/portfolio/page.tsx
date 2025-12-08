@@ -6,7 +6,8 @@ import NewProjectModal from "@/components/NewProjectModal";
 import ActiveProjectPlayer from "@/components/ActiveProjectPlayer";
 import PortfolioEditor from "@/components/PortfolioEditor";
 import InboxSnippetPlayer from "@/components/InboxSnippetPlayer";
-import { getProjectsFromDB, createProjectInDB, updateProjectInDB, deleteProjectInDB, uploadFileToCloud } from "@/lib/db";
+import { getProjectsFromDB, createProjectInDB, updateProjectInDB, deleteProjectInDB } from "@/lib/db";
+import { uploadToSupabase } from "@/lib/storage";
 
 // Estado Inicial por seguridad
 const INITIAL = [{ id: 1, title: "ÉXODO", artist: "SEBAS STC", date: "Hoy", genre: "Trap", category: "PORTFOLIO", isPublic: true, status: "APPROVED", type: "AUDIO", mixUrl: null, masterUrl: null, comments: [] }];
@@ -41,8 +42,26 @@ export default function Dashboard() {
     const togglePublic = async (id: string, isPublic: boolean, e: any) => { e.stopPropagation(); const updated = projects.map(p => p.id === id ? { ...p, isPublic: !isPublic } : p); setProjects(updated); await updateProjectInDB(id, { isPublic: !isPublic }); };
     const handleLink = (id: string, e: any) => { e.stopPropagation(); navigator.clipboard.writeText(`${window.location.origin}/studio/${id}`); alert("Link copiado"); };
     const handleDelete = async (id: string, e: any) => { e.stopPropagation(); if(confirm("¿Eliminar?")) { setProjects(projects.filter(p => p.id !== id)); await deleteProjectInDB(id); } };
-    const handleFileUpload = async (id: string, type: 'MIX' | 'MASTER', file: File) => { const url = await uploadFileToCloud(file, 'tracks'); if(url) { const updateData = type === 'MIX' ? { mixUrl: url } : { masterUrl: url }; await updateProjectInDB(id, updateData); const updated = projects.map(p => p.id === id ? { ...p, ...updateData } : p); setProjects(updated); alert("✓ Subido"); } };
-    const handleSaveProject = async (data: any) => { setIsModalOpen(false); let mix=null, mst=null; if(data.mixFile) mix = await uploadFileToCloud(data.mixFile, 'tracks'); if(data.masterFile) mst = await uploadFileToCloud(data.masterFile, 'tracks'); const p = { title: data.title, artist: data.artist, genre: data.genre, category: "PORTFOLIO", isPublic: true, date: "Hoy", status: "PENDING", type: "AUDIO", mixUrl: mix, masterUrl: mst, comments: [] }; const saved = await createProjectInDB(p); setProjects([saved, ...projects]); };
+    const handleFileUpload = async (id: string, type: 'MIX' | 'MASTER', file: File) => {
+        const result = await uploadToSupabase(file, "uploads");
+        const url = result?.publicUrl;
+        if(url) { 
+            const updateData = type === 'MIX' ? { mixUrl: url } : { masterUrl: url }; 
+            await updateProjectInDB(id, updateData); 
+            const updated = projects.map(p => p.id === id ? { ...p, ...updateData } : p); 
+            setProjects(updated); 
+            alert("✓ Subido"); 
+        }
+    };
+    const handleSaveProject = async (data: any) => { 
+        setIsModalOpen(false); 
+        let mix=null, mst=null; 
+        if(data.mixFile) { const r = await uploadToSupabase(data.mixFile, "uploads"); mix = r?.publicUrl || null; }
+        if(data.masterFile) { const r = await uploadToSupabase(data.masterFile, "uploads"); mst = r?.publicUrl || null; }
+        const p = { title: data.title, artist: data.artist, genre: data.genre, category: "PORTFOLIO", isPublic: true, date: "Hoy", status: "PENDING", type: "AUDIO", mixUrl: mix, masterUrl: mst, comments: [] }; 
+        const saved = await createProjectInDB(p); 
+        setProjects([saved, ...projects]); 
+    };
     const handlePlaySnippet = (url: string, time: number, id: string) => { if(!url) return; setSnippetTrigger(time); setPlayingSnippetId(id); setTimeout(()=>setPlayingSnippetId(null), 5000); };
 
     // Modal Orden (Simplificado)
