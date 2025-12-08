@@ -1,42 +1,22 @@
-/**
- * DASHBOARD - Panel de Control del Ingeniero
- * 
- * Responsabilidades:
- * - Gestionar estado de proyectos (PORTFOLIO, ORDERS, INBOX)
- * - Coordinar la UI entre componentes
- * - Manejar interacciones del usuario
- * 
- * Soluciones implementadas:
- * 1. ✓ Key única para forzar recarga del player al cambiar archivos
- * 2. ✓ Estado reactivo con Firebase en tiempo real
- * 3. ✓ TypeScript estricto sin 'any'
- * 4. ✓ Separación clara de responsabilidades
- */
-
-"use client";
-import { useState, useEffect, useRef } from "react";
-import { useSearchParams, usePathname } from "next/navigation";
-// ⭐ ELIMINADO: EngineeringToolbar (funcionalidad movida a AudioToolbar)
-import NewProjectModal from "@/components/NewProjectModal";
-import ActiveProjectPlayer from "@/components/ActiveProjectPlayer";
+import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import PortfolioEditor from "@/components/PortfolioEditor";
 import InboxSnippetPlayer from "@/components/InboxSnippetPlayer";
-import AudioToolbar from "@/components/AudioToolbar";
-import ABTestPanel from "@/components/ABTestPanel";
-import MetadataEditor from "@/components/MetadataEditor";
-import SplitSheetModal from "@/components/SplitSheetModal";
-import DashboardLayout from "@/components/DashboardLayout";
-import { audioManager } from "@/lib/audioManager";
-import { useProjects } from "@/context/ProjectsContext";
-import {
-    getProjectsFromDB,
-    createProjectInDB,
-    updateProjectInDB,
+// ✅ IMPORTACIÓN CORREGIDA (Sin uploadFileToCloud)
+import { 
+    getProjectsFromDB, 
+    createProjectInDB, 
+    updateProjectInDB, 
     deleteProjectInDB,
     Project,
     CreateProjectInput,
-    Metadata,
+    Metadata
 } from "@/lib/db";
+// ✅ IMPORTACIÓN DE STORAGE
+import { uploadToSupabase } from "@/lib/storage";
+import { useProjects } from "@/context/ProjectsContext";
 import { COLORS, STYLES } from "@/lib/theme";
 
 // ==================== ICONOS ====================
